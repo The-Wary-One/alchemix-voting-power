@@ -5,7 +5,7 @@ import {IERC20} from "../lib/forge-std/src/interfaces/IERC20.sol";
 
 import {IAlchemixToken, IStakingPool} from "./interfaces/Alchemix.sol";
 import {IVault} from "./interfaces/Balancer.sol";
-import {IConvexRewardPool, ICurveGauge, ICurvePool} from "./interfaces/Curve.sol";
+import {IConvexRewardPool, IConvexStakingWrapperFrax, ICurveGauge, ICurvePool} from "./interfaces/Curve.sol";
 import {IMasterChef, IUniswapV2Pair} from "./interfaces/Sushiswap.sol";
 
 contract AlchemixVotes {
@@ -31,6 +31,8 @@ contract AlchemixVotes {
     IConvexRewardPool constant convexALCXFraxBPRewardPool =
         IConvexRewardPool(0xC10fD95fd3B56535668426B2c8681AD1E15Be608);
     address constant convexVoter = 0x989AEb4d175e16225E39E87d0D97A3360524AD80;
+    IConvexStakingWrapperFrax constant fraxStakingPool =
+        IConvexStakingWrapperFrax(0xAF1b82809296E52A42B3452c52e301369Ce20554);
 
     function getVotes(address account) external view returns (uint256 votes) {
         // 1. Get the naked and staked `ALCX` balance.
@@ -93,7 +95,7 @@ contract AlchemixVotes {
     function CurveALCXFraxBPLPVotes(address account) public view returns (uint256 votes) {
         uint256 accountCurveLPBalance = account != convexVoter
             ? curveALCXFraxBPLP.balanceOf(account) + curveALCXFraxBPGauge.balanceOf(account)
-                + convexALCXFraxBPRewardPool.balanceOf(account)
+                + convexALCXFraxBPRewardPool.balanceOf(account) + fraxStakingPool.balanceOf(account)
             // Set Convex votes to 0.
             : 0;
         votes = curveALCXFraxBPPool.calc_withdraw_one_coin(accountCurveLPBalance, 0);

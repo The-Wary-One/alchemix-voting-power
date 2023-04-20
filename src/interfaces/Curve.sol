@@ -24,3 +24,8 @@ interface IConvexRewardPool {
     function balanceOf(address account) external view returns (uint256);
     function stake(uint256 _amount) external returns (bool);
 }
+
+interface IConvexStakingWrapperFrax {
+    function balanceOf(address account) external view returns (uint256);
+    function deposit(uint256 _amount, address _to) external;
+}

@@ -30,6 +30,8 @@ contract AlchemixVotesTest is Test {
         IConvexRewardPool(0xC10fD95fd3B56535668426B2c8681AD1E15Be608);
     IConvexBooster constant convexBooster = IConvexBooster(0xF403C135812408BFbE8713b5A23a04b3D48AAE31);
     address constant convexVoter = 0x989AEb4d175e16225E39E87d0D97A3360524AD80;
+    IConvexStakingWrapperFrax constant fraxStakingPool =
+        IConvexStakingWrapperFrax(0xAF1b82809296E52A42B3452c52e301369Ce20554);
     /* --- Test Data --- */
     address constant koala = address(0xbadbabe);
     uint256 constant voteAmount = 100e18;
@@ -57,8 +59,11 @@ contract AlchemixVotesTest is Test {
         ALCX.approve(address(alchemixStakingPools), type(uint256).max);
         alchemixStakingPools.deposit(1, 5e18);
         vm.stopPrank();
+        assertEq(alchemixStakingPools.getStakeTotalDeposited(koala, 1), 5e18, "staked ALCX in Staking Pool");
         assertEq(votes.ALCXVotes(koala), voteAmount, "naked + staked ALCX");
     }
+
+    function testFork_BalancerALCXWETHLPVotes() external {}
 
     function testFork_CurveALCXFraxBPLPVotes() external {
         // Deposit in the Curve ALCX-FraxBP.
@@ -68,26 +73,43 @@ contract AlchemixVotesTest is Test {
         uint256 lpBalance = curveALCXFraxBPPool.add_liquidity([votesInCurve, 0], 0, false, koala);
         vm.stopPrank();
         uint256 calculatedVotesInCurve = votes.CurveALCXFraxBPLPVotes(koala);
-        assertApproxEqAbs(calculatedVotesInCurve, votesInCurve, 0.05e18, "naked in Curve");
+        assertApproxEqAbs(calculatedVotesInCurve, votesInCurve, 0.05e18, "naked ALCX in Curve");
+        uint256 stakedVotesAmount = lpBalance / 4;
         // Stake in Curve.
         vm.startPrank(koala, koala);
         curveALCXFraxBPLP.approve(address(curveALCXFraxBPGauge), type(uint256).max);
-        curveALCXFraxBPGauge.deposit(lpBalance / 3, koala, false);
+        curveALCXFraxBPGauge.deposit(stakedVotesAmount, koala, false);
         vm.stopPrank();
-        assertEq(votes.CurveALCXFraxBPLPVotes(koala), calculatedVotesInCurve, "naked + staked in Curve");
+        assertEq(curveALCXFraxBPGauge.balanceOf(koala), stakedVotesAmount, "staked ALCX in Curve");
+        assertEq(votes.CurveALCXFraxBPLPVotes(koala), calculatedVotesInCurve, "naked + staked ALCX in Curve");
         // Stake in Convex.
         vm.startPrank(koala, koala);
         curveALCXFraxBPLP.approve(address(convexBooster), type(uint256).max);
-        convexBooster.deposit(120, lpBalance / 3, true);
+        convexBooster.deposit(120, stakedVotesAmount, true);
         vm.stopPrank();
+        assertEq(convexALCXFraxBPRewardPool.balanceOf(koala), stakedVotesAmount, "staked ALCX in Convex");
         assertEq(
-            votes.CurveALCXFraxBPLPVotes(koala), calculatedVotesInCurve, "naked + staked in Curve + staked in Convex"
+            votes.CurveALCXFraxBPLPVotes(koala),
+            calculatedVotesInCurve,
+            "naked + staked ALCX in Curve + staked in Convex"
+        );
+        // Stake in Frax.
+        vm.startPrank(koala, koala);
+        curveALCXFraxBPLP.approve(address(fraxStakingPool), type(uint256).max);
+        fraxStakingPool.deposit(stakedVotesAmount, koala);
+        vm.stopPrank();
+        assertEq(fraxStakingPool.balanceOf(koala), stakedVotesAmount, "staked ALCX in Frax");
+        assertEq(
+            votes.CurveALCXFraxBPLPVotes(koala),
+            calculatedVotesInCurve,
+            "naked + staked ALCX in Curve + staked in Convex + staked in Frax"
         );
     }
 
     function _mintALCX(address to, uint256 amount) internal {
-        address admin = ALCX.getRoleMember(ALCX.MINTER_ROLE(), 0);
-        vm.prank(admin, admin);
-        ALCX.mint(to, amount);
+        deal({token: address(ALCX), to: to, give: amount, adjust: true});
+        // address admin = ALCX.getRoleMember(ALCX.MINTER_ROLE(), 0);
+        // vm.prank(admin, admin);
+        // ALCX.mint(to, amount);
     }
 }
