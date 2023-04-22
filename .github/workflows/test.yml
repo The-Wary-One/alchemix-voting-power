@@ -39,7 +39,7 @@ jobs:
       - name: Run Forge tests
         env:
           RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
-          BLOCK_NUMBER_MAINNET: 17072930
+          BLOCK_NUMBER_MAINNET: 17104685
         run: |
           forge test -vvv
         id: test

@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 interface ICurvePool {
     function fee() external view returns (uint256);
     function balances(uint256 i) external view returns (uint256);
-    function calc_withdraw_one_coin(uint256 lp, uint256 i) external view returns (uint256);
+    function price_oracle() external view returns (uint256);
     function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount, bool use_eth, address receiver)
         external
         returns (uint256);

@@ -15,3 +15,10 @@ interface IStakingPool {
     function getStakeTotalDeposited(address _account, uint256 _poolId) external view returns (uint256);
     function deposit(uint256 _poolId, uint256 _depositAmount) external;
 }
+
+interface IgALCX {
+    function balanceOf(address account) external view returns (uint256);
+    function exchangeRate() external view returns (uint256);
+    function exchangeRatePrecision() external view returns (uint256);
+    function stake(uint256 amount) external;
+}
