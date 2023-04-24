@@ -2,6 +2,9 @@
 optimizer = false                  # Enable or disable the solc optimizer
 verbosity = 3                      # The verbosity of tests
 rpc_endpoints = { mainnet = "${RPC_MAINNET}" }
+fs_permissions = [
+    { access = "read", path = "./broadcast/" }
+]
 
 [profile.production]
 optimizer = true

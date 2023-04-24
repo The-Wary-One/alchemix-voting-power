@@ -7,6 +7,8 @@ import "../src/AlchemixVotingPower.sol";
 import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../src/interfaces/Curve.sol";
 import {IUniswapV2Router02} from "../src/interfaces/Sushiswap.sol";
 
+import {DeployAlchemixVotingPower} from "../script/DeployAlchemixVotingPower.s.sol";
+
 contract AlchemixVotingPowerTest is Test {
     /* --- Alchemix --- */
     IAlchemixToken constant ALCX = IAlchemixToken(0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF);
@@ -51,7 +53,8 @@ contract AlchemixVotingPowerTest is Test {
         vm.createSelectFork(mainnet.rpcUrl, BLOCK_NUMBER_MAINNET);
         require(block.chainid == 1, "Tests should be run on a mainnet fork");
 
-        votingPower = new AlchemixVotingPower();
+        DeployAlchemixVotingPower deployer = new DeployAlchemixVotingPower();
+        votingPower = deployer.run();
 
         // Mint some ALCX to koala.
         vm.label(koala, "koala");
