@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {Test, console2} from "../lib/forge-std/src/Test.sol";
 
 import "../src/AlchemixVotingPower.sol";
-import {IConvexBooster} from "../src/interfaces/Curve.sol";
+import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../src/interfaces/Curve.sol";
 import {IUniswapV2Router02} from "../src/interfaces/Sushiswap.sol";
 
 contract AlchemixVotingPowerTest is Test {
@@ -36,6 +36,8 @@ contract AlchemixVotingPowerTest is Test {
     address constant convexVoter = 0x989AEb4d175e16225E39E87d0D97A3360524AD80;
     IConvexStakingWrapperFrax constant fraxStakingPool =
         IConvexStakingWrapperFrax(0xAF1b82809296E52A42B3452c52e301369Ce20554);
+    IFraxBooster constant fraxBooster = IFraxBooster(0x569f5B842B5006eC17Be02B8b94510BA8e79FbCa);
+    IFraxPoolRegistry constant fraxPoolRegistry = IFraxPoolRegistry(0x41a5881c17185383e19Df6FA4EC158a6F4851A69);
     /* --- Test Data --- */
     address constant koala = address(0xbadbabe);
     uint256 constant voteAmount = 100e18;
@@ -186,7 +188,7 @@ contract AlchemixVotingPowerTest is Test {
         ALCX.approve(address(curveALCXFraxBPPool), type(uint256).max);
         FraxBP.approve(address(curveALCXFraxBPPool), type(uint256).max);
         uint256 lpBalance =
-            curveALCXFraxBPPool.add_liquidity([votingPowerInCurve, correspondingFraxBPAmount], 0, false, koala);
+            curveALCXFraxBPPool.add_liquidity([votingPowerInCurve, correspondingFraxBPAmount], 1000, false, koala);
         vm.stopPrank();
         uint256 calculatedVotingPowerInCurve = votingPower.CurveALCXFraxBPLPVotingPower(koala);
         assertApproxEqAbs(calculatedVotingPowerInCurve, votingPowerInCurve, 0.15e18, "naked ALCX voting power in Curve");
@@ -215,10 +217,14 @@ contract AlchemixVotingPowerTest is Test {
         );
         // Stake in Frax.
         vm.startPrank(koala, koala);
-        curveALCXFraxBPLP.approve(address(fraxStakingPool), type(uint256).max);
-        fraxStakingPool.deposit(stakedVotingPowerAmount, koala);
+        fraxBooster.createVault(23);
+        IFraxStakingProxy fraxVault = IFraxStakingProxy(fraxPoolRegistry.vaultMap(23, koala));
+        curveALCXFraxBPLP.approve(address(fraxVault), type(uint256).max);
+        fraxVault.stakeLockedCurveLp(stakedVotingPowerAmount, 52 weeks);
         vm.stopPrank();
-        assertEq(fraxStakingPool.balanceOf(koala), stakedVotingPowerAmount, "staked ALCX balance in Frax");
+        assertEq(
+            fraxStakingPool.totalBalanceOf(address(fraxVault)), stakedVotingPowerAmount, "staked ALCX balance in Frax"
+        );
         assertEq(
             votingPower.CurveALCXFraxBPLPVotingPower(koala),
             calculatedVotingPowerInCurve,

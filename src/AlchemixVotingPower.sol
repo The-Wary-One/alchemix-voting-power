@@ -5,7 +5,13 @@ import {IERC20} from "../lib/forge-std/src/interfaces/IERC20.sol";
 
 import {IAlchemixToken, IgALCX, IStakingPool} from "./interfaces/Alchemix.sol";
 import {IVault} from "./interfaces/Balancer.sol";
-import {IConvexRewardPool, IConvexStakingWrapperFrax, ICurveGauge, ICurvePool} from "./interfaces/Curve.sol";
+import {
+    IConvexRewardPool,
+    IConvexStakingWrapperFrax,
+    ICurveGauge,
+    ICurvePool,
+    IFraxPoolRegistry
+} from "./interfaces/Curve.sol";
 import {IMasterChef, IUniswapV2Pair} from "./interfaces/Sushiswap.sol";
 import {ITokemakPool} from "./interfaces/Tokemak.sol";
 
@@ -34,6 +40,7 @@ contract AlchemixVotingPower {
     address constant convexVoter = 0x989AEb4d175e16225E39E87d0D97A3360524AD80;
     IConvexStakingWrapperFrax constant fraxStakingPool =
         IConvexStakingWrapperFrax(0xAF1b82809296E52A42B3452c52e301369Ce20554);
+    IFraxPoolRegistry constant fraxPoolRegistry = IFraxPoolRegistry(0x41a5881c17185383e19Df6FA4EC158a6F4851A69);
 
     /// @notice Get the voting power of `account`.
     ///
@@ -68,7 +75,9 @@ contract AlchemixVotingPower {
     /// @param account The target account.
     /// @return votingPower The calculated voting power.
     function gALCXVotingPower(address account) public view returns (uint256 votingPower) {
-        votingPower = gALCX.balanceOf(account) * gALCX.exchangeRate() / gALCX.exchangeRatePrecision() + 1;
+        uint256 v = gALCX.balanceOf(account) * gALCX.exchangeRate() / gALCX.exchangeRatePrecision();
+        // Rounding error.
+        votingPower = v != 0 ? v + 1 : 0;
     }
 
     /// @notice Get the `ALCX` balance in tokemak, `tALCX`.
@@ -123,7 +132,8 @@ contract AlchemixVotingPower {
     function CurveALCXFraxBPLPVotingPower(address account) public view returns (uint256 votingPower) {
         uint256 accountCurveLPBalance = account != convexVoter
             ? curveALCXFraxBPLP.balanceOf(account) + curveALCXFraxBPGauge.balanceOf(account)
-                + convexALCXFraxBPRewardPool.balanceOf(account) + fraxStakingPool.balanceOf(account)
+                + convexALCXFraxBPRewardPool.balanceOf(account)
+                + fraxStakingPool.totalBalanceOf(fraxPoolRegistry.vaultMap(23, account))
             // Set Convex votingPower to 0.
             : 0;
         votingPower = accountCurveLPBalance * curveALCXFraxBPPool.balances(0) / curveALCXFraxBPLP.totalSupply();

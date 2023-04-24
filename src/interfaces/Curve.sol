@@ -27,5 +27,18 @@ interface IConvexRewardPool {
 
 interface IConvexStakingWrapperFrax {
     function balanceOf(address account) external view returns (uint256);
+    function totalBalanceOf(address account) external view returns (uint256);
     function deposit(uint256 _amount, address _to) external;
+}
+
+interface IFraxPoolRegistry {
+    function vaultMap(uint256 _pid, address account) external view returns (address);
+}
+
+interface IFraxBooster {
+    function createVault(uint256 _pid) external returns (address);
+}
+
+interface IFraxStakingProxy {
+    function stakeLockedCurveLp(uint256 _liquidity, uint256 _secs) external returns (bytes32 kek_id);
 }
