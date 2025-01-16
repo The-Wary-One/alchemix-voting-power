@@ -1,6 +1,8 @@
 [profile.default]
-optimizer = false                  # Enable or disable the solc optimizer
-verbosity = 3                      # The verbosity of tests
+solc_version = "0.8.28"
+evm_version = "cancun"
+optimizer = false
+verbosity = 3
 rpc_endpoints = { mainnet = "${RPC_MAINNET}" }
 fs_permissions = [
     { access = "read", path = "./broadcast/" }
@@ -9,3 +11,4 @@ fs_permissions = [
 [profile.production]
 optimizer = true
 optimizer_runs = 1_000_000
+via_ir = true
