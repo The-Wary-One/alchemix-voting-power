@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.28;
 
 import {IERC20} from "../lib/forge-std/src/interfaces/IERC20.sol";
 
@@ -15,7 +15,7 @@ import {
 import {IMasterChef, IUniswapV2Pair} from "./interfaces/Sushiswap.sol";
 import {ITokemakPool} from "./interfaces/Tokemak.sol";
 
-contract AlchemixVotingPower {
+contract AlchemixVotingPowerCalculator {
     /* --- Alchemix --- */
     IAlchemixToken constant ALCX = IAlchemixToken(0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF);
     IgALCX constant gALCX = IgALCX(0x93Dede06AE3B5590aF1d4c111BC54C3f717E4b35);

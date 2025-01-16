@@ -3,8 +3,8 @@ set -e
 
 source .env
 
-# Deploy the AlchemixVotingPower using the first anvil account.
-forge script script/DeployAlchemixVotingPower.s.sol:DeployAlchemixVotingPower \
+# Deploy the AlchemixVotingPowerCalculator using the first anvil account.
+forge script script/AlchemixVotingPowerCalculatorDeployer.s.sol:AlchemixVotingPowerCalculatorDeployer \
     -f "http://localhost:8545" \
     --private-key "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" \
     --broadcast

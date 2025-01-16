@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.28;
 
 import {Test, console2} from "../lib/forge-std/src/Test.sol";
 
-import "../src/AlchemixVotingPower.sol";
+import "../src/AlchemixVotingPowerCalculator.sol";
 import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../src/interfaces/Curve.sol";
 import {IUniswapV2Router02} from "../src/interfaces/Sushiswap.sol";
 
-import {DeployAlchemixVotingPower} from "../script/DeployAlchemixVotingPower.s.sol";
+import {AlchemixVotingPowerCalculatorDeployer} from "../script/AlchemixVotingPowerCalculatorDeployer.s.sol";
 
-contract AlchemixVotingPowerTest is Test {
+contract AlchemixVotingPowerCalculatorTest is Test {
     /* --- Alchemix --- */
     IAlchemixToken constant ALCX = IAlchemixToken(0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF);
     IgALCX constant gALCX = IgALCX(0x93Dede06AE3B5590aF1d4c111BC54C3f717E4b35);
@@ -43,7 +43,7 @@ contract AlchemixVotingPowerTest is Test {
     /* --- Test Data --- */
     address constant koala = address(0xbadbabe);
     uint256 constant voteAmount = 100e18;
-    AlchemixVotingPower votingPower;
+    AlchemixVotingPowerCalculator votingPowerCalculator;
 
     /// @dev Setup the environment for the tests.
     function setUp() public virtual {
@@ -53,8 +53,8 @@ contract AlchemixVotingPowerTest is Test {
         vm.createSelectFork(mainnet.rpcUrl, BLOCK_NUMBER_MAINNET);
         require(block.chainid == 1, "Tests should be run on a mainnet fork");
 
-        DeployAlchemixVotingPower deployer = new DeployAlchemixVotingPower();
-        votingPower = deployer.run();
+        AlchemixVotingPowerCalculatorDeployer deployer = new AlchemixVotingPowerCalculatorDeployer();
+        votingPowerCalculator = deployer.run();
 
         // Mint some ALCX to koala.
         vm.label(koala, "koala");
@@ -63,14 +63,14 @@ contract AlchemixVotingPowerTest is Test {
     }
 
     function testFork_ALCXVotingPower() external {
-        assertEq(votingPower.ALCXVotingPower(koala), voteAmount, "naked ALCX voting power");
+        assertEq(votingPowerCalculator.ALCXVotingPower(koala), voteAmount, "naked ALCX voting power");
         // Stake some ALCX.
         vm.startPrank(koala, koala);
         ALCX.approve(address(alchemixStakingPools), type(uint256).max);
         alchemixStakingPools.deposit(1, 5e18);
         vm.stopPrank();
         assertEq(alchemixStakingPools.getStakeTotalDeposited(koala, 1), 5e18, "staked ALCX balance in Staking Pool");
-        assertEq(votingPower.ALCXVotingPower(koala), voteAmount, "naked + staked ALCX voting power");
+        assertEq(votingPowerCalculator.ALCXVotingPower(koala), voteAmount, "naked + staked ALCX voting power");
     }
 
     function testFork_gALCXVotingPower() external {
@@ -81,7 +81,7 @@ contract AlchemixVotingPowerTest is Test {
         gALCX.stake(votingPowerIngALCX);
         vm.stopPrank();
         assertTrue(gALCX.balanceOf(koala) > 0, "naked gALCX balance");
-        assertEq(votingPower.gALCXVotingPower(koala), votingPowerIngALCX, "naked gALCX voting power");
+        assertEq(votingPowerCalculator.gALCXVotingPower(koala), votingPowerIngALCX, "naked gALCX voting power");
     }
 
     function testFork_tALCXVotingPower() external {
@@ -92,14 +92,14 @@ contract AlchemixVotingPowerTest is Test {
         tALCX.deposit(votingPowerInTokemak);
         vm.stopPrank();
         assertEq(tALCX.balanceOf(koala), votingPowerInTokemak, "naked tALCX balance");
-        assertEq(votingPower.tALCXVotingPower(koala), votingPowerInTokemak, "naked tALCX voting power");
+        assertEq(votingPowerCalculator.tALCXVotingPower(koala), votingPowerInTokemak, "naked tALCX voting power");
         // Stake some tALCX.
         vm.startPrank(koala, koala);
         tALCX.approve(address(alchemixStakingPools), type(uint256).max);
         alchemixStakingPools.deposit(8, 5e18);
         vm.stopPrank();
         assertEq(alchemixStakingPools.getStakeTotalDeposited(koala, 8), 5e18, "staked tALCX balance in Staking Pool");
-        assertEq(votingPower.tALCXVotingPower(koala), votingPowerInTokemak, "naked + staked tALCX voting power");
+        assertEq(votingPowerCalculator.tALCXVotingPower(koala), votingPowerInTokemak, "naked + staked tALCX voting power");
     }
 
     function testFork_SushiswapALCXWETHLPVotingPower() external {
@@ -111,7 +111,7 @@ contract AlchemixVotingPowerTest is Test {
             address(ALCX), votingPowerInSushiswap, votingPowerInSushiswap, 0, koala, block.timestamp + 1
         );
         vm.stopPrank();
-        uint256 calculatedVotingPowerInSushiswap = votingPower.SushiswapALCXWETHLPVotingPower(koala);
+        uint256 calculatedVotingPowerInSushiswap = votingPowerCalculator.SushiswapALCXWETHLPVotingPower(koala);
         assertApproxEqAbs(
             calculatedVotingPowerInSushiswap, votingPowerInSushiswap, 100, "naked ALCX voting power in Sushiswap"
         );
@@ -124,7 +124,7 @@ contract AlchemixVotingPowerTest is Test {
         (uint256 stakedSushiLPBalance,) = masterChef.userInfo(0, koala);
         assertEq(stakedSushiLPBalance, stakedVotingPowerAmount, "staked ALCX balance in Sushiswap");
         assertEq(
-            votingPower.SushiswapALCXWETHLPVotingPower(koala),
+            votingPowerCalculator.SushiswapALCXWETHLPVotingPower(koala),
             calculatedVotingPowerInSushiswap,
             "naked + staked ALCX voting power in Sushiswap"
         );
@@ -149,9 +149,9 @@ contract AlchemixVotingPowerTest is Test {
         balancerVault.joinPool{value: hardcodedEthAmount}(balancerALCXPoolId, koala, koala, pr);
         vm.stopPrank();
         uint256 lpBalance = balancerALCXLP.balanceOf(koala);
-        uint256 calculatedVotingPowerInBalancer = votingPower.BalancerALCXWETHLPVotingPower(koala);
+        uint256 calculatedVotingPowerInBalancer = votingPowerCalculator.BalancerALCXWETHLPVotingPower(koala);
         assertApproxEqAbs(
-            votingPower.BalancerALCXWETHLPVotingPower(koala),
+            votingPowerCalculator.BalancerALCXWETHLPVotingPower(koala),
             votingPowerInBalancer,
             0.05e18,
             "naked ALCX voting power in Balancer"
@@ -164,7 +164,7 @@ contract AlchemixVotingPowerTest is Test {
         vm.stopPrank();
         assertEq(balancerALCXLPStaking.balanceOf(koala), stakedVotingPowerAmount, "staked ALCX balance in Balancer");
         assertEq(
-            votingPower.BalancerALCXWETHLPVotingPower(koala),
+            votingPowerCalculator.BalancerALCXWETHLPVotingPower(koala),
             calculatedVotingPowerInBalancer,
             "naked + staked ALCX voting power in Balancer"
         );
@@ -175,7 +175,7 @@ contract AlchemixVotingPowerTest is Test {
         vm.stopPrank();
         assertEq(auraBalancerALCXLPVault.balanceOf(koala), stakedVotingPowerAmount, "staked ALCX balance in Convex");
         assertEq(
-            votingPower.BalancerALCXWETHLPVotingPower(koala),
+            votingPowerCalculator.BalancerALCXWETHLPVotingPower(koala),
             calculatedVotingPowerInBalancer,
             "naked + staked ALCX voting power in Balancer and Aura"
         );
@@ -193,7 +193,7 @@ contract AlchemixVotingPowerTest is Test {
         uint256 lpBalance =
             curveALCXFraxBPPool.add_liquidity([votingPowerInCurve, correspondingFraxBPAmount], 1000, false, koala);
         vm.stopPrank();
-        uint256 calculatedVotingPowerInCurve = votingPower.CurveALCXFraxBPLPVotingPower(koala);
+        uint256 calculatedVotingPowerInCurve = votingPowerCalculator.CurveALCXFraxBPLPVotingPower(koala);
         assertApproxEqAbs(calculatedVotingPowerInCurve, votingPowerInCurve, 0.15e18, "naked ALCX voting power in Curve");
         // Stake in Curve.
         uint256 stakedVotingPowerAmount = lpBalance / 4;
@@ -203,7 +203,7 @@ contract AlchemixVotingPowerTest is Test {
         vm.stopPrank();
         assertEq(curveALCXFraxBPGauge.balanceOf(koala), stakedVotingPowerAmount, "staked ALCX balance in Curve");
         assertEq(
-            votingPower.CurveALCXFraxBPLPVotingPower(koala),
+            votingPowerCalculator.CurveALCXFraxBPLPVotingPower(koala),
             calculatedVotingPowerInCurve,
             "naked + staked ALCX voting power in Curve"
         );
@@ -214,7 +214,7 @@ contract AlchemixVotingPowerTest is Test {
         vm.stopPrank();
         assertEq(convexALCXFraxBPRewardPool.balanceOf(koala), stakedVotingPowerAmount, "staked ALCX balance in Convex");
         assertEq(
-            votingPower.CurveALCXFraxBPLPVotingPower(koala),
+            votingPowerCalculator.CurveALCXFraxBPLPVotingPower(koala),
             calculatedVotingPowerInCurve,
             "naked + staked ALCX voting power in Curve and Convex"
         );
@@ -229,7 +229,7 @@ contract AlchemixVotingPowerTest is Test {
             fraxStakingPool.totalBalanceOf(address(fraxVault)), stakedVotingPowerAmount, "staked ALCX balance in Frax"
         );
         assertEq(
-            votingPower.CurveALCXFraxBPLPVotingPower(koala),
+            votingPowerCalculator.CurveALCXFraxBPLPVotingPower(koala),
             calculatedVotingPowerInCurve,
             "naked + staked ALCX voting power in Curve, Convex and Frax"
         );
