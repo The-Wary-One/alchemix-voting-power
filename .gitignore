@@ -10,8 +10,14 @@ out/
 # Docs
 docs/
 
+# Scripts
+script/deploy-mainnet.sh
+
 # Dotenv file
 .env
 
 # Deployments
 deployments/31337/
+
+# Vim
+Session.vim
