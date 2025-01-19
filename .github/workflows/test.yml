@@ -14,9 +14,10 @@ jobs:
       fail-fast: true
 
     name: Foundry project
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - name: checkout
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -25,21 +26,20 @@ jobs:
         with:
           version: nightly
 
-      - name: Run Forge build
+      - name: Check format and lint
+        id: check
         run: |
-          forge --version
-          forge build --sizes
+          ./cli.sh check
+
+      - name: Build the contracts
         id: build
-
-      - name: Run Forge fmt
         run: |
-          forge fmt --check
-        id: fmt
+          ./cli.sh build
 
-      - name: Run Forge tests
+      - name: Test the contracts
+        id: test
         env:
           RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
-          BLOCK_NUMBER_MAINNET: 17104685
+          BLOCK_NUMBER_MAINNET: 21652630
         run: |
-          forge test -vvv
-        id: test
+          ./cli.sh test
