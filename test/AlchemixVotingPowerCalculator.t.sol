@@ -99,7 +99,9 @@ contract AlchemixVotingPowerCalculatorTest is Test {
         alchemixStakingPools.deposit(8, 5e18);
         vm.stopPrank();
         assertEq(alchemixStakingPools.getStakeTotalDeposited(koala, 8), 5e18, "staked tALCX balance in Staking Pool");
-        assertEq(votingPowerCalculator.tALCXVotingPower(koala), votingPowerInTokemak, "naked + staked tALCX voting power");
+        assertEq(
+            votingPowerCalculator.tALCXVotingPower(koala), votingPowerInTokemak, "naked + staked tALCX voting power"
+        );
     }
 
     function testFork_SushiswapALCXWETHLPVotingPower() external {

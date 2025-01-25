@@ -6,7 +6,6 @@ import {Script} from "../lib/forge-std/src/Script.sol";
 import {AlchemixVotingPowerCalculator} from "../src/AlchemixVotingPowerCalculator.sol";
 
 contract AlchemixVotingPowerCalculatorDeployer is Script {
-
     function run() external returns (AlchemixVotingPowerCalculator) {
         vmSafe.broadcast();
 
