@@ -54,6 +54,8 @@ $(fmttxt --bold --underlined 'Usage:') $(fmttxt --bold './cli.sh') <COMMAND>
 
 $(fmttxt --bold --underlined 'Commands:')
     $(fmttxt --bold 'help')         Print this message
+    $(fmttxt --bold 'build')        Build the smart contracts
+    $(fmttxt --bold 'check')        Check formatting and linting
     $(fmttxt --bold 'test')         Run the project's tests [aliases: t]
 
 EOF
