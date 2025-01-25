@@ -118,11 +118,6 @@ function main {
         ;;
     t | test)
         shift "${#}" # Remove all remaining arguments.
-
-        if [[ -e ./.env ]]; then # Source '.env' only if it exists.
-            source .env          # Add all global variables and functions to the current shell.
-        fi
-
         _test
         ;;
     *)

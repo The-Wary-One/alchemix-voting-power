@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
-
-source .env
+set -o errexit
+set -o nounset
+set -o pipefail
 
 # Start a local anvil instance forked from Mainnet
 anvil \
