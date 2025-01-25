@@ -15,6 +15,7 @@ interface IVault {
         TOKEN_IN_FOR_EXACT_BPT_OUT,
         ALL_TOKENS_IN_FOR_EXACT_BPT_OUT,
         ADD_TOKEN // for Managed Pool
+
     }
 
     function getPoolTokens(bytes32 poolId)
