@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
-
-source .env
+set -o errexit
+set -o nounset
+set -o pipefail
 
 abi=$(jq --compact-output '{abi: .abi}' ./out/AlchemixVotingPowerCalculator.sol/AlchemixVotingPowerCalculator.json)
 

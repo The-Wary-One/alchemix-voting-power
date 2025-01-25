@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
-
-source .env
+set -o errexit
+set -o nounset
+set -o pipefail
 
 abi=$(jq -c '{abi: .abi}' ./out/AlchemixVotingPowerCalculator.sol/AlchemixVotingPowerCalculator.json)
 
@@ -16,4 +16,4 @@ blocknumberhex=$(jq -rc \
 
 blocknumber=$(cast --to-base "${blocknumberhex}" 10)
 
-printf '%s %s {"blockNumber": %i}' "${abi}" "${address}" "${blocknumber}" | jq --slurp add >./deployments/1/AlchemixVotingPowerCalculator.json
+printf '%s %s {"blockNumber": %i}\n' "${abi}" "${address}" "${blocknumber}" | jq --slurp add >./deployments/1/AlchemixVotingPowerCalculator.json
