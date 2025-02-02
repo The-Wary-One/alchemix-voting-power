@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Test, console2} from "../lib/forge-std/src/Test.sol";
+import {SD59x18, sd, intoUint256, convert} from "../lib/prb/src/SD59x18.sol";
 
 import "../src/AlchemixVotingPowerCalculator.sol";
 import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../src/interfaces/Curve.sol";
@@ -38,7 +39,7 @@ contract AlchemixVotingPowerCalculatorTest is Test {
     address constant convexVoter = 0x989AEb4d175e16225E39E87d0D97A3360524AD80;
     IConvexStakingWrapperFrax constant fraxStakingPool =
         IConvexStakingWrapperFrax(0xAF1b82809296E52A42B3452c52e301369Ce20554);
-    IFraxBooster constant fraxBooster = IFraxBooster(0x569f5B842B5006eC17Be02B8b94510BA8e79FbCa);
+    IFraxBooster constant fraxBooster = IFraxBooster(0xD8Bd5Cdd145ed2197CB16ddB172DF954e3F28659);
     IFraxPoolRegistry constant fraxPoolRegistry = IFraxPoolRegistry(0x41a5881c17185383e19Df6FA4EC158a6F4851A69);
     /* --- Test Data --- */
     address constant koala = address(0xbadbabe);
@@ -133,22 +134,27 @@ contract AlchemixVotingPowerCalculatorTest is Test {
     }
 
     function testFork_BalancerALCXWETHLPVotingPower() external {
-        // Deposit in the Balancer 20WETH-80ALCX Pool.
-        uint256 votingPowerInBalancer = 10e18;
+        // Deposit in the Balancer 20%WETH-80%ALCX Pool.
+        // If we want to LP with 8 ALCX, we need 2 ALCX worth of ETH too.
+        uint256 votingPowerInBalancer = 8e18;
+        (address[] memory tokens, uint256[] memory balances,) = balancerVault.getPoolTokens(balancerALCXPoolId);
+        // tokens[0] is WETH and tokens[1] is ALCX.
+        uint256 alcxEthPrice = _balancerMath_calc_out_given_in(1e18, balances[1], 0.8e18, balances[0], 0.2e18, 0.01e18);
+        uint256 ethAmountIn = 2e18 * alcxEthPrice / 1e18;
+
         vm.startPrank(koala, koala);
         ALCX.approve(address(balancerVault), type(uint256).max);
-        (address[] memory tokens,,) = balancerVault.getPoolTokens(balancerALCXPoolId);
-        tokens[0] = address(0);
+        address[] memory jpTokens = new address[](2);
+        jpTokens[0] = address(0);
+        jpTokens[1] = tokens[1];
         uint256[] memory maxIn = new uint256[](2);
-        // Hardcoded 10*0.2/0.8=2.5 ALCX amount in ETH at writing.
-        // Could be calculated using https://token-engineering-balancer.gitbook.io/balancer-simulations/additional-code-and-instructions/balancer-the-python-edition/balancer_math.py#calc_out_given_in.
-        uint256 hardcodedEthAmount = 0.024e18;
-        maxIn[0] = hardcodedEthAmount;
+        // Calculate the ALCX price in ETH.
+        maxIn[0] = ethAmountIn;
         maxIn[1] = votingPowerInBalancer;
         IVault.JoinPoolRequest memory pr = IVault.JoinPoolRequest(
-            tokens, maxIn, abi.encode(IVault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT, maxIn, 0), false
+            jpTokens, maxIn, abi.encode(IVault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT, maxIn, 0), false
         );
-        balancerVault.joinPool{value: hardcodedEthAmount}(balancerALCXPoolId, koala, koala, pr);
+        balancerVault.joinPool{value: ethAmountIn}(balancerALCXPoolId, koala, koala, pr);
         vm.stopPrank();
         uint256 lpBalance = balancerALCXLP.balanceOf(koala);
         uint256 calculatedVotingPowerInBalancer = votingPowerCalculator.BalancerALCXWETHLPVotingPower(koala);
@@ -183,10 +189,35 @@ contract AlchemixVotingPowerCalculatorTest is Test {
         );
     }
 
+    // This function is the function for computing the result of swapping assets in Balancer.
+    // https://token-engineering-balancer.gitbook.io/balancer-simulations/additional-code-and-instructions/balancer-the-python-edition/balancer_math.py#calc_out_given_in
+    function _balancerMath_calc_out_given_in(
+        uint256 _token_amount_in,
+        uint256 _token_balance_in,
+        uint256 _token_weight_in,
+        uint256 _token_balance_out,
+        uint256 _token_weight_out,
+        uint256 _swap_fee
+    ) internal pure returns (uint256) {
+        SD59x18 token_amount_in = sd(int256(_token_amount_in));
+        SD59x18 token_balance_in = sd(int256(_token_balance_in));
+        SD59x18 token_weight_in = sd(int256(_token_weight_in));
+        SD59x18 token_balance_out = sd(int256(_token_balance_out));
+        SD59x18 token_weight_out = sd(int256(_token_weight_out));
+        SD59x18 swap_fee = sd(int256(_swap_fee));
+
+        SD59x18 weight_ratio = token_weight_in / token_weight_out;
+        SD59x18 adjusted_in = token_amount_in * (convert(1) - swap_fee);
+        SD59x18 y = token_balance_in / (token_balance_in + adjusted_in);
+        SD59x18 foo = y.pow(weight_ratio);
+        SD59x18 bar = convert(1) - foo;
+        return intoUint256(token_balance_out * bar);
+    }
+
     function testFork_CurveALCXFraxBPLPVotingPower() external {
         uint256 votingPowerInCurve = 10e18;
         // Mint some FraxBP.
-        uint256 correspondingFraxBPAmount = votingPowerInCurve * 1e18 / curveALCXFraxBPPool.price_oracle();
+        uint256 correspondingFraxBPAmount = (votingPowerInCurve * 1e18) / curveALCXFraxBPPool.price_oracle();
         deal({token: address(FraxBP), to: koala, give: correspondingFraxBPAmount, adjust: true});
         // Deposit in the Curve ALCX-FraxBP.
         vm.startPrank(koala, koala);

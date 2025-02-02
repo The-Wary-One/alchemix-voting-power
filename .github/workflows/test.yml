@@ -40,6 +40,6 @@ jobs:
         id: test
         env:
           RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
-          BLOCK_NUMBER_MAINNET: 21652630
+          BLOCK_NUMBER_MAINNET: 21759910
         run: |
           ./cli.sh test
