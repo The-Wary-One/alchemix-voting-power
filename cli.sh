@@ -74,7 +74,8 @@ function _check {
 function _test {
     forge test \
         --fork-url "${RPC_MAINNET}" \
-        --fork-block-number "${BLOCK_NUMBER_MAINNET}"
+        --fork-block-number "${BLOCK_NUMBER_MAINNET}" \
+        "${@}"
 }
 
 ### MAIN SCRIPT ###
@@ -105,7 +106,7 @@ function main {
 
     case "$command" in
     -h | --help | h | help)
-        shift "${#}"
+        shift "${#}" # Remove all remaining arguments.
         _usage
         ;;
     build)
@@ -117,12 +118,10 @@ function main {
         _check
         ;;
     t | test)
-        shift "${#}" # Remove all remaining arguments.
-        _test
+        _test "${@}"
         ;;
     *)
-        shift "${#}"
-        printf '%s\n' "$(fmttxt --red "Invalid command.")" 1>&2
+        printf '%s\n' "$(fmttxt --red "Invalid command: ${command} ${*}")" 1>&2
         _usage
         exit 1
         ;;
