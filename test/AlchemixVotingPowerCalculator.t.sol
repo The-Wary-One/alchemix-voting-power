@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import {Test, console2} from "../lib/forge-std/src/Test.sol";
+import {Test} from "../lib/forge-std/src/Test.sol";
 import {SD59x18, sd, intoUint256, convert} from "../lib/prb/src/SD59x18.sol";
 
 import "../src/AlchemixVotingPowerCalculator.sol";
+import {IBeefyVaultV7} from "../src/interfaces/Balancer.sol";
 import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../src/interfaces/Curve.sol";
 import {IUniswapV2Router02} from "../src/interfaces/Sushiswap.sol";
 
@@ -21,13 +22,14 @@ contract AlchemixVotingPowerCalculatorTest is Test {
     IUniswapV2Pair constant sushiswapALCXLP = IUniswapV2Pair(0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8);
     IMasterChef constant masterChef = IMasterChef(0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d);
     IUniswapV2Router02 constant sushiswapRouter = IUniswapV2Router02(0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F);
-    /* --- Balancer/Aura --- */
+    /* --- Balancer/Aura/Beefy --- */
     IERC20 constant balancerALCXLP = IERC20(0xf16aEe6a71aF1A9Bc8F56975A4c2705ca7A782Bc);
     ICurveGauge constant balancerALCXLPStaking = ICurveGauge(0x183D73dA7adC5011EC3C46e33BB50271e59EC976);
     IVault constant balancerVault = IVault(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
     bytes32 constant balancerALCXPoolId = bytes32(0xf16aee6a71af1a9bc8f56975a4c2705ca7a782bc0002000000000000000004bb);
     IConvexRewardPool constant auraBalancerALCXLPVault = IConvexRewardPool(0x8B227E3D50117E80a02cd0c67Cd6F89A8b7B46d7);
     IConvexBooster constant auraBooster = IConvexBooster(0xA57b8d98dAE62B26Ec3bcC4a365338157060B234);
+    IBeefyVaultV7 constant beefyVault = IBeefyVaultV7(0x9E90aD4810C9eaE0ADFc15801838Dc53cC6ed48a);
     /* --- Curve/Convex --- */
     IERC20 constant curveALCXFraxBPLP = IERC20(0xf985005a3793DbA4cCe241B3C19ddcd3Fe069ff4);
     IERC20 constant FraxBP = IERC20(0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC);
@@ -165,7 +167,7 @@ contract AlchemixVotingPowerCalculatorTest is Test {
             "naked ALCX voting power in Balancer"
         );
         // Stake in Balancer.
-        uint256 stakedVotingPowerAmount = lpBalance / 3;
+        uint256 stakedVotingPowerAmount = lpBalance / 4;
         vm.startPrank(koala, koala);
         balancerALCXLP.approve(address(balancerALCXLPStaking), type(uint256).max);
         balancerALCXLPStaking.deposit(stakedVotingPowerAmount, koala, false);
@@ -181,11 +183,28 @@ contract AlchemixVotingPowerCalculatorTest is Test {
         balancerALCXLP.approve(address(auraBooster), type(uint256).max);
         auraBooster.deposit(74, stakedVotingPowerAmount, true);
         vm.stopPrank();
-        assertEq(auraBalancerALCXLPVault.balanceOf(koala), stakedVotingPowerAmount, "staked ALCX balance in Convex");
+        assertEq(auraBalancerALCXLPVault.balanceOf(koala), stakedVotingPowerAmount, "staked ALCX balance in Aura");
         assertEq(
             votingPowerCalculator.BalancerALCXWETHLPVotingPower(koala),
             calculatedVotingPowerInBalancer,
             "naked + staked ALCX voting power in Balancer and Aura"
+        );
+        // Stake in Beefy.
+        vm.startPrank(koala, koala);
+        balancerALCXLP.approve(address(beefyVault), type(uint256).max);
+        beefyVault.deposit(stakedVotingPowerAmount);
+        vm.stopPrank();
+        assertApproxEqAbs(
+            beefyVault.balanceOf(koala) * beefyVault.getPricePerFullShare() / 1e18,
+            stakedVotingPowerAmount,
+            10, // Precision error.
+            "staked ALCX balance in Beefy"
+        );
+        assertApproxEqAbs(
+            votingPowerCalculator.BalancerALCXWETHLPVotingPower(koala),
+            calculatedVotingPowerInBalancer,
+            10,
+            "naked + staked ALCX voting power in Balancer, Aura and Beefy"
         );
     }
 
