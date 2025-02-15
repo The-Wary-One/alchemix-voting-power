@@ -72,10 +72,7 @@ function _check {
 }
 
 function _test {
-    forge test \
-        --fork-url "${RPC_MAINNET}" \
-        --fork-block-number "${BLOCK_NUMBER_MAINNET}" \
-        "${@}"
+    forge test "${@}"
 }
 
 ### MAIN SCRIPT ###
@@ -121,7 +118,7 @@ function main {
         _test "${@}"
         ;;
     *)
-        printf '%s\n' "$(fmttxt --red "Invalid command: ${command} ${*}")" 1>&2
+        printf '%s\n\n' "$(fmttxt --red "Invalid command: ${command} ${*}")" 1>&2
         _usage
         exit 1
         ;;

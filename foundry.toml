@@ -3,7 +3,6 @@ solc_version = "0.8.28"
 evm_version = "cancun"
 optimizer = false
 verbosity = 3
-rpc_endpoints = { mainnet = "${RPC_MAINNET}" }
 fs_permissions = [
     { access = "read", path = "./broadcast/" }
 ]
@@ -12,3 +11,9 @@ fs_permissions = [
 optimizer = true
 optimizer_runs = 1_000_000
 via_ir = true
+
+[rpc_endpoints]
+mainnet = "${RPC_MAINNET}"
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_KEY_MAINNET}" }

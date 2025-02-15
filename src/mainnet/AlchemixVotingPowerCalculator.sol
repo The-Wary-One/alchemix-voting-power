@@ -1,19 +1,19 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import {IERC20} from "../lib/forge-std/src/interfaces/IERC20.sol";
+import {IERC20} from "../../lib/forge-std/src/interfaces/IERC20.sol";
 
-import {IAlchemixToken, IgALCX, IStakingPool} from "./interfaces/Alchemix.sol";
-import {IVault, IBeefyVaultV7} from "./interfaces/Balancer.sol";
+import {IAlchemixToken, IgALCX, IStakingPool} from "../interfaces/Alchemix.sol";
+import {IVault, IBeefyVaultV7} from "../interfaces/Balancer.sol";
 import {
     IConvexRewardPool,
     IConvexStakingWrapperFrax,
     ICurveGauge,
     ICurvePool,
     IFraxPoolRegistry
-} from "./interfaces/Curve.sol";
-import {IMasterChef, IUniswapV2Pair} from "./interfaces/Sushiswap.sol";
-import {ITokemakPool} from "./interfaces/Tokemak.sol";
+} from "../interfaces/Curve.sol";
+import {IMasterChef, IUniswapV2Pair} from "../interfaces/Sushiswap.sol";
+import {ITokemakPool} from "../interfaces/Tokemak.sol";
 
 contract AlchemixVotingPowerCalculator {
     /* --- Alchemix --- */
@@ -132,12 +132,13 @@ contract AlchemixVotingPowerCalculator {
     /// @param account The target account.
     /// @return votingPower The calculated voting power.
     function CurveALCXFraxBPLPVotingPower(address account) public view returns (uint256 votingPower) {
-        uint256 accountCurveLPBalance = account != convexVoter
-            ? curveALCXFraxBPLP.balanceOf(account) + curveALCXFraxBPGauge.balanceOf(account)
-                + convexALCXFraxBPRewardPool.balanceOf(account)
-                + fraxStakingPool.totalBalanceOf(fraxPoolRegistry.vaultMap(23, account))
-            // Set Convex votingPower to 0.
-            : 0;
+        // Set Convex votingPower to 0.
+        if (account == convexVoter) {
+            return 0;
+        }
+        uint256 accountCurveLPBalance = curveALCXFraxBPLP.balanceOf(account) + curveALCXFraxBPGauge.balanceOf(account)
+            + convexALCXFraxBPRewardPool.balanceOf(account)
+            + fraxStakingPool.totalBalanceOf(fraxPoolRegistry.vaultMap(23, account));
         votingPower = accountCurveLPBalance * curveALCXFraxBPPool.balances(0) / curveALCXFraxBPLP.totalSupply();
     }
 }
