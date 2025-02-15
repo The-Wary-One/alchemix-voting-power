@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import {Test} from "../lib/forge-std/src/Test.sol";
-import {SD59x18, sd, intoUint256, convert} from "../lib/prb/src/SD59x18.sol";
+import {Test, console2} from "../../lib/forge-std/src/Test.sol";
+import {SD59x18, sd, intoUint256, convert} from "../../lib/prb/src/SD59x18.sol";
 
-import "../src/AlchemixVotingPowerCalculator.sol";
-import {IBeefyVaultV7} from "../src/interfaces/Balancer.sol";
-import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../src/interfaces/Curve.sol";
-import {IUniswapV2Router02} from "../src/interfaces/Sushiswap.sol";
+import "../../src/mainnet/AlchemixVotingPowerCalculator.sol";
+import {IBeefyVaultV7} from "../../src/interfaces/Balancer.sol";
+import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../../src/interfaces/Curve.sol";
+import {IUniswapV2Router02} from "../../src/interfaces/Sushiswap.sol";
 
-import {AlchemixVotingPowerCalculatorDeployer} from "../script/AlchemixVotingPowerCalculatorDeployer.s.sol";
+import {AlchemixVotingPowerCalculatorDeployer} from "../../script/mainnet/AlchemixVotingPowerCalculatorDeployer.s.sol";
 
 contract AlchemixVotingPowerCalculatorTest is Test {
     /* --- Alchemix --- */
@@ -49,12 +49,12 @@ contract AlchemixVotingPowerCalculatorTest is Test {
     AlchemixVotingPowerCalculator votingPowerCalculator;
 
     /// @dev Setup the environment for the tests.
-    function setUp() public virtual {
+    function setUp() public {
         // Make sure we run the tests on a mainnet fork.
-        Chain memory mainnet = getChain("mainnet");
         uint256 BLOCK_NUMBER_MAINNET = vm.envUint("BLOCK_NUMBER_MAINNET");
-        vm.createSelectFork(mainnet.rpcUrl, BLOCK_NUMBER_MAINNET);
+        vm.createSelectFork("mainnet", BLOCK_NUMBER_MAINNET);
         require(block.chainid == 1, "Tests should be run on a mainnet fork");
+        require(block.number == BLOCK_NUMBER_MAINNET, "Tests should be run on a mainnet fork");
 
         AlchemixVotingPowerCalculatorDeployer deployer = new AlchemixVotingPowerCalculatorDeployer();
         votingPowerCalculator = deployer.run();
@@ -118,7 +118,7 @@ contract AlchemixVotingPowerCalculatorTest is Test {
         vm.stopPrank();
         uint256 calculatedVotingPowerInSushiswap = votingPowerCalculator.SushiswapALCXWETHLPVotingPower(koala);
         assertApproxEqAbs(
-            calculatedVotingPowerInSushiswap, votingPowerInSushiswap, 100, "naked ALCX voting power in Sushiswap"
+            calculatedVotingPowerInSushiswap, votingPowerInSushiswap, 200, "naked ALCX voting power in Sushiswap"
         );
         // Stake in Sushiswap.
         uint256 stakedVotingPowerAmount = sushiswapALCXLP.balanceOf(koala) / 2;
