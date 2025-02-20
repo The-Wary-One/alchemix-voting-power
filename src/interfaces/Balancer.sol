@@ -26,10 +26,3 @@ interface IVault {
         external
         payable;
 }
-
-interface IBeefyVaultV7 {
-    function balanceOf(address account) external view returns (uint256);
-    function getPricePerFullShare() external view returns (uint256);
-
-    function deposit(uint256 _amount) external;
-}

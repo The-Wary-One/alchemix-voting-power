@@ -5,7 +5,7 @@ import {Test, console2} from "../../lib/forge-std/src/Test.sol";
 import {SD59x18, sd, intoUint256, convert} from "../../lib/prb/src/SD59x18.sol";
 
 import "../../src/mainnet/AlchemixVotingPowerCalculator.sol";
-import {IBeefyVaultV7} from "../../src/interfaces/Balancer.sol";
+import {IBeefyVaultV7} from "../../src/interfaces/Beefy.sol";
 import {IConvexBooster, IFraxBooster, IFraxStakingProxy} from "../../src/interfaces/Curve.sol";
 import {IUniswapV2Router02} from "../../src/interfaces/Sushiswap.sol";
 

@@ -4,7 +4,8 @@ pragma solidity ^0.8.28;
 import {IERC20} from "../../lib/forge-std/src/interfaces/IERC20.sol";
 
 import {IAlchemixToken, IgALCX, IStakingPool} from "../interfaces/Alchemix.sol";
-import {IVault, IBeefyVaultV7} from "../interfaces/Balancer.sol";
+import {IVault} from "../interfaces/Balancer.sol";
+import {IBeefyVaultV7} from "../interfaces/Beefy.sol";
 import {
     IConvexRewardPool,
     IConvexStakingWrapperFrax,
