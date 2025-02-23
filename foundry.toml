@@ -14,10 +14,12 @@ optimizer_runs = 1_000_000
 
 [rpc_endpoints]
 arbitrum = "${RPC_ARBITRUM}"
+linea = "${RPC_LINEA}"
 mainnet = "${RPC_MAINNET}"
 optimism = "${RPC_OPTIMISM}"
 
 [etherscan]
 arbitrum = { key = "${ETHERSCAN_KEY_ARBITRUM}" }
+linea = { key = "${ETHERSCAN_KEY_LINEA}" }
 mainnet = { key = "${ETHERSCAN_KEY_MAINNET}" }
 optimism = { key = "${ETHERSCAN_KEY_OPTIMISM}" }
