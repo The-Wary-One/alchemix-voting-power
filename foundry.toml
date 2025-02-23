@@ -6,16 +6,18 @@ verbosity = 3
 fs_permissions = [
     { access = "read", path = "./broadcast/" }
 ]
+via_ir = true
 
 [profile.production]
 optimizer = true
 optimizer_runs = 1_000_000
-via_ir = true
 
 [rpc_endpoints]
+arbitrum = "${RPC_ARBITRUM}"
 mainnet = "${RPC_MAINNET}"
 optimism = "${RPC_OPTIMISM}"
 
 [etherscan]
+arbitrum = { key = "${ETHERSCAN_KEY_ARBITRUM}" }
 mainnet = { key = "${ETHERSCAN_KEY_MAINNET}" }
 optimism = { key = "${ETHERSCAN_KEY_OPTIMISM}" }
