@@ -7,4 +7,4 @@ set -o errtrace
 
 cd "$(dirname "${0}")"
 
-../deploy-local.sh 'AlchemixVotingPowerCalculator' 'mainnet'
+RPC_URL="${RPC_MAINNET}" BLOCK_NUMBER="${BLOCK_NUMBER_MAINNET}" ../start-fork.sh

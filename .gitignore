@@ -11,7 +11,7 @@ out/
 docs/
 
 # Scripts
-script/**/deploy-production.sh
+script/deploy-production.sh
 
 # Dotenv file
 .env
