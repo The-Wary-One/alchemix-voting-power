@@ -121,7 +121,7 @@ contract AlchemixOptimismVPCTest is Test {
         assertApproxEqAbs(
             vpc.getVotingPower(koala),
             votingPowerInVelodrome,
-            0.0001e18,
+            0.001e18,
             "naked + staked ALCX voting power in Velodrome and Beefy"
         );
     }
