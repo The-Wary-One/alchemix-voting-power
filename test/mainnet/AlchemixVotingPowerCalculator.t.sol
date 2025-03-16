@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.29;
 
 import {Test, console2} from "../../lib/forge-std/src/Test.sol";
 import {SD59x18, sd, intoUint256, convert} from "../../lib/prb/src/SD59x18.sol";
