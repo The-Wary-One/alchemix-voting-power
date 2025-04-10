@@ -28,6 +28,7 @@ contract AlchemixLineaVPCTest is Test {
         vpc = deployer.run();
     }
 
+    /// forge-config: default.evm_version = "london"
     function testFork_getVotingPowerInTokens() external {
         uint256 votingPowerInTokens = 10e18;
 
@@ -38,6 +39,7 @@ contract AlchemixLineaVPCTest is Test {
         assertEq(vpc.getVotingPowerInTokens(koala), votingPowerInTokens, "naked ALCX voting power");
     }
 
+    /// forge-config: default.evm_version = "london"
     function testFork_getVotingPowerInLynex() external {
         uint256 votingPowerInLynex = 10e18;
 

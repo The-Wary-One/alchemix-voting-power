@@ -7,4 +7,4 @@ set -o errtrace
 
 cd "$(dirname "${0}")"
 
-../deploy-local.sh 'AlchemixLineaVPC' 'linea'
+FOUNDRY_PROFILE=linea ../deploy-local.sh 'AlchemixLineaVPC' 'linea'

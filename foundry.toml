@@ -12,6 +12,11 @@ via_ir = true
 optimizer = true
 optimizer_runs = 1_000_000
 
+[profile.linea]
+evm_version = "london"
+optimizer = true
+optimizer_runs = 1_000_000
+
 [rpc_endpoints]
 arbitrum = "${RPC_ARBITRUM}"
 linea = "${RPC_LINEA}"

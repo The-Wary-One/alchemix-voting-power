@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 set -o errtrace
 
-anvil \
+FOUNDRY_PROFILE="${FOUNDRY_PROFILE:-default}" anvil \
     --fork-url "${RPC_URL}" \
     --fork-block-number "${BLOCK_NUMBER}" \
     --fork-chain-id 31337 \

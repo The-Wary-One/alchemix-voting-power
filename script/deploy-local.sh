@@ -13,7 +13,7 @@ cd "$(dirname "${0}")/../"
 
 # Deploy the ${contract_name} using the first anvil account.
 printf '🚀 Deploy the AlchemixVotingPowerCalculator contract...\n'
-forge script "script/${chain_name}/${contract_name}Deployer.s.sol:${contract_name}Deployer" \
+FOUNDRY_PROFILE="${FOUNDRY_PROFILE:-default}" forge script "script/${chain_name}/${contract_name}Deployer.s.sol:${contract_name}Deployer" \
     -f 'http://localhost:8545' \
     --private-key '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' \
     --broadcast

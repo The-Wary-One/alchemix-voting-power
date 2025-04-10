@@ -7,4 +7,4 @@ set -o errtrace
 
 cd "$(dirname "${0}")"
 
-RPC_URL="${RPC_LINEA}" ../deploy-production.sh 'AlchemixLineaVPC' 'linea' 59144
+FOUNDRY_PROFILE=linea RPC_URL="${RPC_LINEA}" ../deploy-production.sh 'AlchemixLineaVPC' 'linea' 59144

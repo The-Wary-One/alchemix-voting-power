@@ -72,7 +72,8 @@ function _check {
 }
 
 function _test {
-    forge test "${@}"
+    forge test --no-match-path '**/linea/*' "${@}"
+    FOUNDRY_PROFILE=linea forge test --match-path '**/linea/*' "${@}"
 }
 
 ### MAIN SCRIPT ###
