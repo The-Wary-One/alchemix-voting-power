@@ -99,10 +99,7 @@ contract AlchemixArbitrumVPCTest is Test {
         assertEq(ramsesAlethAlcxGauge.balanceOf(koala), alethAlcxLpPosition, "staked ALETH/ALCX LP balance in Ramses");
         uint256 alethAlcxVP = vpc.getVotingPower(koala);
         assertApproxEqAbs(
-            alethAlcxVP,
-            votingPowerInAlethAlcxPool,
-            1e5,
-            "naked + staked ALETH/ALCX voting power in Ramses"
+            alethAlcxVP, votingPowerInAlethAlcxPool, 1e5, "naked + staked ALETH/ALCX voting power in Ramses"
         );
 
         // 2. Test the voting Power in the ALCX/WETH LP.

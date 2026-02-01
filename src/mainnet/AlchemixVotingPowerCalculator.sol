@@ -5,7 +5,6 @@ import {IERC20} from "../../lib/forge-std/src/interfaces/IERC20.sol";
 
 import {IAlchemixToken, IgALCX, IStakingPool} from "../interfaces/Alchemix.sol";
 import {IVault} from "../interfaces/Balancer.sol";
-import {IBeefyVaultV7} from "../interfaces/Beefy.sol";
 import {
     IConvexRewardPool,
     IConvexStakingWrapperFrax,
@@ -26,13 +25,11 @@ contract AlchemixVotingPowerCalculator {
     /* --- Sushiswap --- */
     IUniswapV2Pair constant sushiswapALCXLP = IUniswapV2Pair(0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8);
     IMasterChef constant masterChef = IMasterChef(0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d);
-    /* --- Balancer/Aura/Beefy --- */
-    IERC20 constant balancerALCXLP = IERC20(0xf16aEe6a71aF1A9Bc8F56975A4c2705ca7A782Bc);
-    ICurveGauge constant balancerALCXLPStaking = ICurveGauge(0x183D73dA7adC5011EC3C46e33BB50271e59EC976);
-    IVault constant balancerVault = IVault(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
-    bytes32 constant balancerALCXPoolId = bytes32(0xf16aee6a71af1a9bc8f56975a4c2705ca7a782bc0002000000000000000004bb);
-    IConvexRewardPool constant auraBalancerALCXLPVault = IConvexRewardPool(0x8B227E3D50117E80a02cd0c67Cd6F89A8b7B46d7);
-    IBeefyVaultV7 constant beefyVault = IBeefyVaultV7(0x9E90aD4810C9eaE0ADFc15801838Dc53cC6ed48a);
+    /* --- Balancer/Aura --- */
+    IERC20 constant balancerALCXLP = IERC20(0x1535D7CA00323Aa32BD62AEDdf7ca651e4b95966);
+    ICurveGauge constant balancerALCXLPStaking = ICurveGauge(0x2F534f93928B99A4759a5C6a75a61b34132a06ff);
+    IVault constant balancerVault = IVault(0xbA1333333333a1BA1108E8412f11850A5C319bA9);
+    IConvexRewardPool constant auraBalancerALCXLPVault = IConvexRewardPool(0x39b2b74b817f0A10a5fA67a3EDCf5705A750c43C);
     /* --- Curve/Convex --- */
     IERC20 constant curveALCXFraxBPLP = IERC20(0xf985005a3793DbA4cCe241B3C19ddcd3Fe069ff4);
     ICurvePool constant curveALCXFraxBPPool = ICurvePool(0x4149d1038575CE235E03E03B39487a80FD709D31);
@@ -113,18 +110,17 @@ contract AlchemixVotingPowerCalculator {
         votingPower = (sushiLPBalance + stakedSushiLPBalance) * reserveALCX / sushiswapALCXLP.totalSupply();
     }
 
-    /// @notice Get the naked and staked (in Balancer, Aura and Beefy) Balancer ALCX/WETH LP Position.
+    /// @notice Get the naked and staked (in Balancer and Aura) Balancer ALCX/WETH LP Position.
     ///
     /// @param account The target account.
     /// @return votingPower The calculated voting power.
     function BalancerALCXWETHLPVotingPower(address account) public view returns (uint256 votingPower) {
         // https://docs.balancer.fi/reference/lp-tokens/underlying.html
-        (, uint256[] memory b,) = balancerVault.getPoolTokens(balancerALCXPoolId);
-        uint256 underlyingBalanceInLP = b[1];
+        uint256[] memory liveBalances = balancerVault.getCurrentLiveBalances(address(balancerALCXLP));
+        uint256 underlyingBalanceInLP = liveBalances[1]; // [0] is WETH, [1] is ALCX.
         uint256 balancerLPTotalSupply = balancerALCXLP.totalSupply();
         uint256 accountALCXBalancerBalance = balancerALCXLP.balanceOf(account)
-            + balancerALCXLPStaking.balanceOf(account) + auraBalancerALCXLPVault.balanceOf(account)
-            + beefyVault.balanceOf(account) * beefyVault.getPricePerFullShare() / 1e18;
+            + balancerALCXLPStaking.balanceOf(account) + auraBalancerALCXLPVault.balanceOf(account);
         votingPower = accountALCXBalancerBalance * underlyingBalanceInLP / balancerLPTotalSupply;
     }
 

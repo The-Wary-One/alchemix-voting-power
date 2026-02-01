@@ -80,10 +80,7 @@ contract AlchemixLineaVPCTest is Test {
         // Test naked USDC/ALCX voting power in Lynex LP.
         assertEq(alcx.balanceOf(koala), 0, "Assert ALCX balance");
         assertApproxEqAbs(
-            vpc.getVotingPower(koala),
-            votingPowerInLynex,
-            1e11,
-            "naked ALCX voting power in the USDC/ALCX Lynex pool"
+            vpc.getVotingPower(koala), votingPowerInLynex, 1e11, "naked ALCX voting power in the USDC/ALCX Lynex pool"
         );
 
         uint256 usdcAlcxLpPosition = usdcAlcxLpBalance / 2; // Split the LP tokens into naked and staked (i.e. gauge) positions.
@@ -98,10 +95,7 @@ contract AlchemixLineaVPCTest is Test {
         // Test staked USDC/ALCX voting power in Lynex Gauge.
         assertEq(lynexUsdcAlcxGauge.balanceOf(koala), usdcAlcxLpPosition, "staked USDC/ALCX LP balance in Lynex");
         assertApproxEqAbs(
-            vpc.getVotingPower(koala),
-            votingPowerInLynex,
-            1e11,
-            "naked + staked USDC/ALCX voting power in Lynex"
+            vpc.getVotingPower(koala), votingPowerInLynex, 1e11, "naked + staked USDC/ALCX voting power in Lynex"
         );
     }
 }

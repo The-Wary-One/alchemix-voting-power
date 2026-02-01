@@ -80,10 +80,7 @@ contract AlchemixOptimismVPCTest is Test {
 
         // Test naked voting power in Velodrome LP.
         assertApproxEqAbs(
-            vpc.getVotingPower(koala),
-            votingPowerInVelodrome,
-            0.0000001e18,
-            "naked ALCX voting power in Velodrome"
+            vpc.getVotingPower(koala), votingPowerInVelodrome, 0.0000001e18, "naked ALCX voting power in Velodrome"
         );
 
         uint256 lpPosition = lpBalance / 3; // Split the LP tokens into naked, gauge and beefy positions.
